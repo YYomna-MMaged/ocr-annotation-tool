@@ -1,0 +1,13 @@
+# Python environment
+.venv/
+__pycache__/
+*.py[cod]
+
+# Data and Images (Keep the folders, ignore the content)
+input_images/*
+cropped_images
+!input_images/.gitkeep
+!cropped_images/.gitkeep
+
+# Output files
+annotations_output.xlsx
