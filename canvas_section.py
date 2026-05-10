@@ -29,6 +29,18 @@ def render_canvas_section():
     _render_navigation(idx, image_list, current_path, orig_w, orig_h)
 
     st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Rotation controls
+    _render_rotation_controls(idx, image_list, image_pil)
+    
+    # Get current rotation angle and apply rotation to image
+    current_path_str = str(current_path)
+    rotation_angle = st.session_state.image_rotations.get(current_path_str, 0) % 360
+    if rotation_angle != 0:
+        # Rotate the image (positive angle = counter-clockwise)
+        image_pil = image_pil.rotate(rotation_angle, expand=True, resample=Image.LANCZOS)
+        orig_w, orig_h = image_pil.size
+    
     zoom_pct = st.slider(
         "🔍 Zoom level", min_value=25, max_value=200, value=75, step=25, format="%d%%"
     )
@@ -317,3 +329,39 @@ def _install_ctrl_enter_submitter():
         height=0,
         width=0,
     )
+
+
+def _render_rotation_controls(idx, image_list, image_pil):
+    """Render rotation buttons for the current image."""
+    current_path_str = str(image_list[idx])
+    
+    # Get current rotation angle
+    rotation_angle = st.session_state.image_rotations.get(current_path_str, 0) % 360
+    
+    col_rot_left, col_rot_display, col_rot_right, col_rot_reset = st.columns([1, 1.5, 1, 1.2], gap="small")
+    
+    with col_rot_left:
+        if st.button("↺ Left 90°", use_container_width=True, key=f"rotate_left_{idx}"):
+            new_angle = (rotation_angle + 90) % 360
+            st.session_state.image_rotations[current_path_str] = new_angle
+            st.session_state.canvas_version += 1  # Clear canvas when rotating
+            st.session_state.has_rects_on_canvas = False  # Reset drawing mode
+            st.rerun()
+    
+    with col_rot_display:
+        st.metric("📐 Rotation", f"{rotation_angle}°", label_visibility="collapsed")
+    
+    with col_rot_right:
+        if st.button("Right 90° ↻", use_container_width=True, key=f"rotate_right_{idx}"):
+            new_angle = (rotation_angle - 90) % 360
+            st.session_state.image_rotations[current_path_str] = new_angle
+            st.session_state.canvas_version += 1  # Clear canvas when rotating
+            st.session_state.has_rects_on_canvas = False  # Reset drawing mode
+            st.rerun()
+    
+    with col_rot_reset:
+        if st.button("Reset", use_container_width=True, key=f"rotate_reset_{idx}"):
+            st.session_state.image_rotations[current_path_str] = 0
+            st.session_state.canvas_version += 1  # Clear canvas when rotating
+            st.session_state.has_rects_on_canvas = False  # Reset drawing mode
+            st.rerun()

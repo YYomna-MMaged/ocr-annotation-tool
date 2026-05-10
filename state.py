@@ -14,6 +14,7 @@ def init_state():
         "edit_target": None,
         "canvas_drawing_mode": "rect",
         "has_canvas_objects": False,
+        "image_rotations": {},  # Track rotation angle for each image
     }
     for key, val in defaults.items():
         if key not in st.session_state:
