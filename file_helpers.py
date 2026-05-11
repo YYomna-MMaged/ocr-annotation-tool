@@ -71,3 +71,27 @@ def save_crop(
     cropped.save(out_path, "PNG")
     return cropped, str(out_path)
 
+
+def remove_diacritics(text: str) -> str:
+    """Remove Arabic diacritical marks (tashkeel) from text and normalize whitespace."""
+    # Remove all Arabic diacritics using explicit Unicode ranges:
+    # U+0610–U+061A : Arabic extended marks (e.g. ؐ–ؚ)
+    # U+064B–U+065F : Core tashkeel (fathah, dammah, kasrah, tanwin, shadda, sukun …)
+    # U+0670       : Arabic letter superscript alef (alef wasl mark)
+    # U+06D6–U+06DC: Quranic annotation signs
+    # U+06DF–U+06E4: More Quranic marks
+    # U+06E7–U+06E8: Arabic small high yeh / noon
+    # U+06EA–U+06ED: Arabic empty centre / rounded high stop …
+    arabic_diacritics = re.compile(
+        r'[\u0610-\u061A\u064B-\u065F\u0670'
+        r'\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]'
+    )
+    text = arabic_diacritics.sub('', text)
+
+    # Collapse multiple spaces / tabs on the same line into a single space
+    text = re.sub(r'[ \t]+', ' ', text)
+
+    # Collapse 3+ consecutive newlines down to at most 2 (preserve paragraph breaks)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    return text.strip()
